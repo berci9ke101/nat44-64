@@ -1,0 +1,34 @@
+#!/bin/bash
+
+SRCIP='198.18.0.0/24'
+IFO='eno2'
+IFI='eno1'
+
+/sbin/nft add table nat
+/sbin/nft 'add chain nat postrouting { type nat hook postrouting priority 100 ; }'
+/sbin/nft add rule ip nat postrouting oifname $IFO masquerade
+
+hash_size="4194304"
+conn_max="8388608"
+
+case $1 in
+	"400000")
+		hash_size="524288"
+                conn_max="1048576"
+		;;
+
+	"4000000")
+		hash_size="4194304"
+		conn_max="8388608"
+		;;
+
+	"40000000")
+                hash_size="67108864"
+                conn_max="134217728"
+		;;
+esac
+
+/sbin/sysctl -w net.netfilter.nf_conntrack_max="$conn_max"
+echo "$hash_size" > /sys/module/nf_conntrack/parameters/hashsize
+
+/sbin/sysctl -w net.netfilter.nf_conntrack_udp_timeout=15000

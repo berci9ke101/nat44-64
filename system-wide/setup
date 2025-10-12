@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#dut3-----
+
+# arp table fix
+ip neighbor add 198.18.0.2 lladdr b8:ca:3a:62:3c:40 dev eno1 nud permanent
+ip neighbor add 198.19.0.2 lladdr b8:ca:3a:62:3c:42 dev eno1 nud permanent
+
+# add NDP table entries
+ip neighbor add 2001:2::1 lladdr b8:ca:3a:62:3c:40 dev eno2 nud permanent
+ip neighbor add 2001:2:0:8000::1 lladdr b8:ca:3a:62:3c:42 dev eno2 nud permanent
+
+#enable ipv4 routing
+sysctl -w net.ipv4.ip_forward=1
+
+#enable ipv6 routing
+sysctl -w net.ipv6.conf.all.forwarding=1
+
+# ip addr for eno1
+ip addr add 198.18.0.1/24 dev eno1
+ip addr add 2001:2::1 dev eno1
+ip link set dev eno1 up
+
+# ip addr for eno2
+ip addr add 198.19.0.1/24 dev eno2
+ip addr add 2001:2:0:8000::1 dev eno2
+ip link set dev eno2 up
+
+# rx-flow-hash
+ethtool -N eno1 rx-flow-hash udp4 sdfn
+ethtool -N eno1 rx-flow-hash udp6 sdfn
+ethtool -N eno2 rx-flow-hash udp4 sdfn
+ethtool -N eno2 rx-flow-hash udp6 sdfn
+
+# jool commands
+#modprobe jool
+#jool instance add --netfilter --pool6 64:ff9b::/96
+#jool pool4 add 198.19.0.1 --udp 1-65535

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+modprobe jool
+jool instance add --netfilter --pool6 64:ff9b::/96
+jool pool4 add 198.19.0.1 --udp 1-65535

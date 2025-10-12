@@ -1,0 +1,25 @@
+#!/bin/bash
+
+systemctl restart vpp
+
+sleep 30
+
+vppctl nat64 plugin enable st-buckets $(($1*2))
+echo "[VPP] $(($1*2)) connections registered"
+sleep 10
+vppctl set interface state TenGigabitEthernet1/0/0 up
+vppctl set interface state TenGigabitEthernet1/0/1 up
+vppctl set interface ip address TenGigabitEthernet1/0/0 2001:2::1/64
+vppctl set interface ip address TenGigabitEthernet1/0/1 198.19.0.1/24
+vppctl ip route add 2001:2::/64 via 2001:2::1 TenGigabitEthernet1/0/0
+vppctl ip route add 198.19.0.0/24 via 198.19.0.1 TenGigabitEthernet1/0/1
+vppctl set ip neighbor static TenGigabitEthernet1/0/0 2001:2::2 b8:ca:3a:62:3c:40
+vppctl set ip neighbor static TenGigabitEthernet1/0/1 198.19.0.2 b8:ca:3a:62:3c:42
+vppctl nat64 add prefix 64:ff9b::/96
+vppctl nat64 add pool address 198.19.0.1
+vppctl nat64 add interface address TenGigabitEthernet1/0/1
+vppctl nat64 add interface address TenGigabitEthernet1/0/0
+vppctl set interface nat64 in TenGigabitEthernet1/0/0
+vppctl set interface nat64 out TenGigabitEthernet1/0/1
+vppctl set nat timeout udp 10000
+sleep 10

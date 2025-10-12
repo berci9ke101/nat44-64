@@ -1,0 +1,6 @@
+#!/bin/bash
+
+systemctl stop vpp
+killall vpp
+systemctl restart vpp
+systemctl kill vpp
